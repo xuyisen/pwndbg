@@ -49,7 +49,7 @@ that were not made explicit.
 
 from __future__ import annotations
 
-from typing import Dict
+from typing import Dict, Optional
 from typing import List
 
 import gdb
@@ -64,6 +64,7 @@ import pwndbg.aglib.typeinfo
 import pwndbg.aglib.vmmap
 import pwndbg.lib.cache
 from pwndbg.color import message
+import itertools
 
 LIBC_NAME = "libc.so.6"
 MALLOC_NAME = "malloc"
@@ -109,7 +110,7 @@ def is_enabled() -> bool:
     return any(installed)
 
 
-def resolve_address(name: str) -> int | None:
+def resolve_address(name: str) -> Optional[int]:
     """
     Checks whether a given symbol is available and part of libc, and returns its
     address.
@@ -250,7 +251,7 @@ class Tracker:
         """
         Returns colored string of the provided pointer/address
         """
-        if colored_ptr := self.colorized_heap_ptrs.get(ptr)
+        if colored_ptr := self.colorized_heap_ptrs.get(ptr):
             return colored_ptr
 
         idx = len(self.colorized_heap_ptrs) % len(PTRS_COLORS)
@@ -667,10 +668,9 @@ def install(disable_hardware_watchpoints=True) -> None:
     available = [resolve_address(name) for name in required_symbols]
 
     if not all(available):
-        print(message.error("The following required symbols are not available:"))
+        print(message.warn("The following required symbols are not available:"))
         for name in (x[0] for x in zip(required_symbols, available) if not x[1]):
-            print(message.error(f"    - {name}"))
-        print(message.error(f"Make sure {LIBC_NAME} has already been loaded."))
+            print(message.warn(f"    - {name}"))
 
         return
 

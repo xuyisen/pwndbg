@@ -44,6 +44,9 @@ class LLDBTestHost(TestHost):
         assert interpreter.is_file()
 
         env = os.environ.copy()
+        # Ensure TERM is set to avoid curses initialization failure.
+        if "TERM" not in env or not env["TERM"]:
+            env["TERM"] = "linux"
         env["TEST_OPERATION"] = op
         env["TEST_PYTEST_ROOT"] = str(self._pytest_root)
         env["TEST_BINARIES_ROOT"] = str(self._binaries_root)

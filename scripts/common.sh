@@ -27,12 +27,12 @@ else
         echo "Warning: Falling back to 'uv' found in PATH." >&2
         UV="$(command -v uv)"
     else
-        echo "Error: 'uv' binary not found." >&2
-        UV="${PWNDBG_VENV_PATH}/bin/uv"
+        echo "Warning: 'uv' binary not found, falling back to direct execution." >&2
+        UV=""
+        UV_RUN=""
+        UV_RUN_TEST=""
+        UV_RUN_LINT=""
+        UV_RUN_DOCS=""
+        UV_RUN_MYPY=""
     fi
-    UV_RUN="${UV} run"
-    UV_RUN_TEST="${UV_RUN} --group dev --group tests --all-extras"
-    UV_RUN_LINT="${UV_RUN} --group lint"
-    UV_RUN_DOCS="${UV_RUN} --group docs --extra gdb --extra lldb"
-    UV_RUN_MYPY="${UV_RUN} --group dev --group lint --group tests --extra gdb --extra lldb"
 fi

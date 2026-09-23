@@ -62,7 +62,7 @@ def main():
 
         main()
         return
-    except ImportError:
+    except (ImportError, RuntimeError):
         pass
 
     gdb_path = shutil.which("gdb")

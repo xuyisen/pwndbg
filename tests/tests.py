@@ -158,19 +158,23 @@ def get_gdb_host(args: argparse.Namespace, local_pwndbg_root: Path) -> TestHost:
             sys.exit(1)
     elif args.group == Group.CROSS_ARCH_USER:
         # Some systems don't ship 'gdb-multiarch', but support multiple
-        # architectures in their regular binaries. Try the regular GDB.
+        # architectures in their regular binaries. Try gdb-multiarch first,
+        # then pwndbg (which wraps gdb-for-pwndbg), then plain gdb.
         supports_arches = "py import os; archs = ['i386', 'aarch64', 'arm', 'mips', 'riscv', 'sparc']; os._exit(3) if len([arch for arch in archs if arch in gdb.architecture_names()]) == len(archs) else os._exit(2)"
 
-        gdb_path_str = shutil.which("pwndbg")
-        if gdb_path_str is None:
-            print("ERROR: No 'pwndbg' executables in path")
-            sys.exit(1)
+        gdb_candidates = ["gdb-multiarch", "pwndbg", "gdb"]
+        gdb_path = None
+        for candidate in gdb_candidates:
+            gdb_path_str = shutil.which(candidate)
+            if gdb_path_str is None:
+                continue
+            result = subprocess.run([gdb_path_str, "-nx", "-ex", supports_arches], capture_output=True)
+            # GDB supports cross architecture targets
+            if result.returncode == 3:
+                gdb_path = Path(gdb_path_str)
+                break
 
-        result = subprocess.run([gdb_path_str, "-nx", "-ex", supports_arches], capture_output=True)
-        # GDB supports cross architecture targets
-        if result.returncode == 3:
-            gdb_path = Path(gdb_path_str)
-        else:
+        if gdb_path is None:
             print("ERROR: 'pwndbg' does not support cross architecture targets")
             sys.exit(1)
     else:

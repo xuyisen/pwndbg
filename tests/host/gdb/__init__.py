@@ -35,6 +35,10 @@ class GDBTestHost(TestHost):
     ) -> CompletedProcess[str]:
         env = os.environ if env is None else env
 
+        # Ensure TERM is set to avoid curses initialization failure.
+        if "TERM" not in env or not env["TERM"]:
+            env = {**env, "TERM": "linux"}
+
         # Prepare the GDB command line.
         gdb_args = ["-ex", f"py import sys,os; sys.path.insert(0, os.getcwd()); import {target}"]
 
